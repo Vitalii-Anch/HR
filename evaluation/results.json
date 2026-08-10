@@ -1,66 +1,67 @@
 {
-  "generated_at": "2026-08-03T15:50:31Z",
+  "generated_at": "2026-08-10T15:46:59Z",
   "retrieval_ablation": {
     "k=2": {
       "n_items": 21,
       "recall_at_k": 1.0,
       "mean_gold_doc_coverage": 0.9048,
       "mean_top1_score": 0.7442,
-      "mean_latency_sec": 0.2043
+      "mean_latency_sec": 1.1953
     },
     "k=4": {
       "n_items": 21,
       "recall_at_k": 1.0,
       "mean_gold_doc_coverage": 0.9524,
       "mean_top1_score": 0.7442,
-      "mean_latency_sec": 0.0169
+      "mean_latency_sec": 0.0229
     },
     "k=6": {
       "n_items": 21,
       "recall_at_k": 1.0,
       "mean_gold_doc_coverage": 0.9762,
       "mean_top1_score": 0.7442,
-      "mean_latency_sec": 0.0195
+      "mean_latency_sec": 0.0249
     }
   },
   "full_pipeline_metrics": {
-    "llm_used": false,
+    "llm_used": true,
     "n_items": 30,
-    "groundedness_rate": 1.0,
-    "citation_precision_mean": 0.6429,
-    "citation_recall_mean": 0.9524,
-    "tool_selection_accuracy": 1.0,
+    "groundedness_rate": 0.9048,
+    "citation_precision_mean": 0.5627,
+    "citation_recall_mean": 0.881,
+    "tool_selection_accuracy": 0.625,
     "workflow_completion_rate": 1.0,
-    "escalation_clarification_accuracy": 1.0,
+    "escalation_clarification_accuracy": 0.9,
     "action_safety_pass_rate": 1.0,
-    "latency_p50_sec": 0.0265,
-    "latency_p95_sec": 0.0711,
-    "latency_mean_sec": 0.1418
+    "latency_p50_sec": 5.6339,
+    "latency_p95_sec": 21.2532,
+    "latency_mean_sec": 7.5477
   },
   "per_item_results": [
     {
       "id": "qa-01",
       "category": "straightforward_qa",
-      "latency_sec": 3.4986,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Paid Time Off (PTO) Policy says under \"Eligibility and Accrual\":\n\n- **Full-time employees** (30+ hours/week) accrue PTO a",
+      "latency_sec": 36.5707,
+      "answer_preview": "Full-time employees (30+ hours/week) accrue PTO at a rate of **1.25 days per month (15 days/year)** during their first 3 years of tenure. This increases to 1.67",
       "citations": [
-        "holiday-calendar",
         "leave-policy",
+        "onboarding-checklist",
         "pto-policy"
       ],
       "tool_trace_names": [
+        "search_policy_documents",
         "search_policy_documents"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-02",
       "category": "straightforward_qa",
-      "latency_sec": 0.0249,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Paid Time Off (PTO) Policy says under \"Maximum Balance and Carryover\":\n\n- Employees may carry over **up to 5 unused PTO d",
+      "latency_sec": 5.6339,
+      "answer_preview": "Employees may carry over **up to 5 unused PTO days** into the next calendar year. Any balance above 5 days is forfeited on December 31, unless local law require",
       "citations": [
         "pto-policy"
       ],
@@ -70,29 +71,30 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-03",
       "category": "straightforward_qa",
-      "latency_sec": 0.0233,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Holiday Calendar Policy says under \"Holidays Falling on Weekends\":\n\nWhen an observed holiday falls on a Saturday, it is o",
+      "latency_sec": 8.8094,
+      "answer_preview": "According to Northwind's Holiday Calendar Policy, **Independence Day is observed on Friday, July 3, 2026** for U.S.-based employees (PTO Policy > Observed Holid",
       "citations": [
         "holiday-calendar"
       ],
       "tool_trace_names": [
+        "search_policy_documents",
         "search_policy_documents"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-04",
       "category": "straightforward_qa",
-      "latency_sec": 0.0282,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Holiday Calendar Policy says under \"Floating Holidays\":\n\nFull-time employees receive **2 floating holidays per calendar y",
+      "latency_sec": 5.3311,
+      "answer_preview": "Full-time employees receive **2 floating holidays per calendar year**. These can be used for religious observances, cultural celebrations, or personal preferenc",
       "citations": [
         "holiday-calendar"
       ],
@@ -102,13 +104,13 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-05",
       "category": "straightforward_qa",
-      "latency_sec": 0.0265,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Expense Reimbursement Policy says under \"Categories of Reimbursable Expenses\":\n\n- **Travel:** Coach-class airfare, standa",
+      "latency_sec": 4.7857,
+      "answer_preview": "The daily meal expense cap while traveling on Company business is **$75 USD (or local equivalent) per employee**, and costs should be itemized where possible. A",
       "citations": [
         "expense-policy"
       ],
@@ -118,15 +120,14 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-06",
       "category": "straightforward_qa",
-      "latency_sec": 0.0296,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Expense Reimbursement Policy says under \"Categories of Reimbursable Expenses\":\n\nainment:** Reasonable costs entertaining ",
+      "latency_sec": 4.7179,
+      "answer_preview": "Remote and hybrid employees receive an **annual home office stipend of $500 USD**, intended for items such as a desk, chair, or monitor, submitted as a reimburs",
       "citations": [
-        "benefits-overview",
         "equipment-policy",
         "expense-policy",
         "remote-work-policy"
@@ -137,13 +138,13 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-07",
       "category": "straightforward_qa",
-      "latency_sec": 0.027,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Data Security Policy says under \"Incident Reporting\":\n\nSuspected data security incidents (lost device, phishing click, su",
+      "latency_sec": 6.4817,
+      "answer_preview": "Suspected data security incidents (e.g., lost device, phishing click, suspected unauthorized access, accidental data exposure) must be reported to IT Security w",
       "citations": [
         "data-security-policy",
         "equipment-policy",
@@ -155,16 +156,17 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-08",
       "category": "straightforward_qa",
-      "latency_sec": 0.035,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Benefits Overview says under \"Retirement \u2014 401(k)\":\n\nFull-time and part-time (20+ hrs/week) employees are eligible to con",
+      "latency_sec": 5.1747,
+      "answer_preview": "Northwind's 401(k) match formula is:\n\n- **100% match on the first 3%** of eligible compensation you contribute\n- **50% match on the next 2%** you contribute\n\nTh",
       "citations": [
         "benefits-overview",
-        "compensation-pay-policy"
+        "compensation-pay-policy",
+        "onboarding-checklist"
       ],
       "tool_trace_names": [
         "search_policy_documents"
@@ -172,13 +174,13 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-09",
       "category": "straightforward_qa",
-      "latency_sec": 0.0363,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Benefits Overview says under \"Eligibility\":\n\n- **Full-time employees** are eligible for the full benefits suite starting ",
+      "latency_sec": 5.6944,
+      "answer_preview": "A new **full-time** hire becomes eligible for medical benefits (along with the full benefits suite \u2014 dental/vision, 401(k) match, life/disability, EAP) starting",
       "citations": [
         "benefits-overview",
         "leave-policy",
@@ -190,14 +192,15 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-10",
       "category": "straightforward_qa",
-      "latency_sec": 0.0322,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Leave Policy (Parental and Medical) says under \"Parental Leave\":\n\n- **Birthing parents** receive **12 weeks of paid paren",
+      "latency_sec": 4.7377,
+      "answer_preview": "Non-birthing parents (including adoptive and foster parents) receive **6 weeks of paid parental leave** at 100% of base pay. This must be taken within 12 months",
       "citations": [
+        "holiday-calendar",
         "leave-policy"
       ],
       "tool_trace_names": [
@@ -206,15 +209,14 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-11",
       "category": "straightforward_qa",
-      "latency_sec": 0.0426,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Equipment Policy says under \"Care, Loss, and Damage\":\n\n- Employees are responsible for reasonable care of Company equipme",
+      "latency_sec": 6.4675,
+      "answer_preview": "If a Company laptop is lost or stolen:\n\n- **Report immediately:** You must report the loss or theft to IT within 24 hours. This is required both under the Equip",
       "citations": [
-        "data-security-policy",
         "equipment-policy"
       ],
       "tool_trace_names": [
@@ -223,13 +225,13 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-12",
       "category": "straightforward_qa",
-      "latency_sec": 0.0395,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Performance Management Policy says under \"Performance Improvement Plans (PIPs)\":\n\nWhen an employee receives a rating of \"",
+      "latency_sec": 4.6881,
+      "answer_preview": "A Performance Improvement Plan (PIP) at Northwind typically runs for **30 to 60 days**. It includes specific, measurable expectations, a defined timeline, and s",
       "citations": [
         "compensation-pay-policy",
         "performance-management-policy"
@@ -240,13 +242,13 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-13",
       "category": "straightforward_qa",
-      "latency_sec": 0.0388,
-      "answer_preview": "Here's what the NORTHWIND RETAIL CO. -- COMPENSATION AND PAY POLICY says under \"PAY PERIODS AND PAYDAYS\":\n\nNorthwind pays employees on a biweekly schedule (26 p",
+      "latency_sec": 5.0648,
+      "answer_preview": "Northwind employees are paid **biweekly** (26 pay periods per year), with paychecks issued via direct deposit **every other Friday**. Hourly employees must subm",
       "citations": [
         "compensation-pay-policy",
         "holiday-calendar"
@@ -257,103 +259,108 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "qa-14",
       "category": "straightforward_qa",
-      "latency_sec": 0.047,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Workplace Conduct Policy says under \"Purpose\":\n\nThis policy sets expectations for professional conduct, defines prohibite",
+      "latency_sec": 10.3808,
+      "answer_preview": "Under Northwind's Workplace Conduct Policy, the **Core Expectations** section (applies to all employees, contractors, and interns) states that employees are exp",
       "citations": [
-        "data-security-policy",
+        "compensation-pay-policy",
         "onboarding-checklist",
         "performance-management-policy",
         "workplace-conduct-policy"
       ],
       "tool_trace_names": [
-        "search_policy_documents"
+        "search_policy_documents",
+        "get_policy_section"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "multi-01",
       "category": "multi_document",
-      "latency_sec": 0.0711,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Leave Policy (Parental and Medical) says under \"Interaction with PTO and Benefits\":\n\n- Parental and medical leave run sep",
+      "latency_sec": 7.7501,
+      "answer_preview": "Here's how an 8-week medical leave would work under Northwind's policy (Leave Policy \u2014 Parental and Medical):\n\n**PTO accrual:**\n- Company-paid medical leave cov",
       "citations": [
+        "benefits-overview",
         "holiday-calendar",
         "leave-policy",
         "pto-policy"
       ],
       "tool_trace_names": [
+        "search_policy_documents",
         "search_policy_documents"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "multi-02",
       "category": "multi_document",
-      "latency_sec": 0.034,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Remote Work Policy says under \"Manager and Location Approval\":\n\n- Employees in Fully Remote or Hybrid roles who wish to w",
+      "latency_sec": 13.6675,
+      "answer_preview": "Here's what applies to a hybrid employee working from a different U.S. state for a month:\n\n**Approvals needed**\n- If this is a *temporary* stay of **up to 10 co",
       "citations": [
-        "onboarding-checklist",
+        "data-security-policy",
         "remote-work-policy"
       ],
       "tool_trace_names": [
-        "search_policy_documents"
+        "search_policy_documents",
+        "search_policy_documents",
+        "get_policy_section"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "multi-03",
       "category": "multi_document",
-      "latency_sec": 0.0373,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Data Security Policy says under \"Consequences of Violation\":\n\nViolations of this policy are addressed under the Workplace",
+      "latency_sec": 10.2626,
+      "answer_preview": "Here's what the policies say, regardless of whether the termination is voluntary or for cause (e.g., a conduct violation):\n\n**Unused PTO**\n- You are paid out fo",
       "citations": [
         "data-security-policy",
         "equipment-policy",
-        "pto-policy"
+        "leave-policy",
+        "pto-policy",
+        "workplace-conduct-policy"
       ],
       "tool_trace_names": [
+        "search_policy_documents",
+        "search_policy_documents",
         "search_policy_documents"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "tool-01",
       "category": "tool_requiring",
-      "latency_sec": 0.0246,
-      "answer_preview": "Your current PTO balance is 14.0 days (accrual rate: 1.67 days/month).\nPer Northwind's PTO Policy, your direct manager must approve PTO requests, and requests s",
-      "citations": [
-        "onboarding-checklist",
-        "pto-policy"
-      ],
+      "latency_sec": 6.2369,
+      "answer_preview": "Here's your current PTO status (E1002):\n\n- **Current PTO balance:** 14.0 days\n- **Accrual rate:** 1.67 days/month\n- **Carried over from last year:** 5.0 days\n\nI",
+      "citations": [],
       "tool_trace_names": [
-        "check_pto_balance",
-        "search_policy_documents"
+        "check_pto_balance"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "tool-02",
       "category": "tool_requiring",
-      "latency_sec": 0.003,
-      "answer_preview": "Here's your profile on file: Priya Nair, HR Business Partner in People & Culture, based in Chicago, IL. Employment type: full-time. Hire date: 2020-01-15.\n\n(ANT",
+      "latency_sec": 6.9725,
+      "answer_preview": "Here's your profile on file:\n\n- **Name:** Priya Nair\n- **Role:** HR Business Partner\n- **Department:** People & Culture\n- **Location:** Chicago, IL (US)\n- **Emp",
       "citations": [],
       "tool_trace_names": [
         "lookup_employee_profile"
@@ -361,13 +368,13 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "tool-03",
       "category": "tool_requiring",
-      "latency_sec": 0.0022,
-      "answer_preview": "Your current benefits elections: medical plan = Core PPO, dental = True, vision = False, 401(k) enrolled = False (0% contribution), life insurance = basic.\n\n(AN",
+      "latency_sec": 5.0361,
+      "answer_preview": "Here's your current benefits enrollment on file (employee E1010):\n\n- **Medical Plan:** Core PPO\n- **Dental:** Enrolled\n- **Vision:** Not enrolled\n- **401(k):** ",
       "citations": [],
       "tool_trace_names": [
         "lookup_benefits_status"
@@ -375,39 +382,30 @@
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "tool-04",
       "category": "tool_requiring",
-      "latency_sec": 0.0284,
-      "answer_preview": "Your current PTO balance is 11.25 days (accrual rate: 1.67 days/month).\nPer Northwind's PTO Policy, your direct manager must approve PTO requests, and requests ",
-      "citations": [
-        "onboarding-checklist",
-        "pto-policy"
-      ],
+      "latency_sec": 7.519,
+      "answer_preview": "**PTO Balance (E1005):**\n- Current balance: **11.25 days**\n- Accrual rate: 1.67 days/month\n- Carryover from last year: 4.5 days\n\n**Ticket Preview (not yet submi",
+      "citations": [],
       "tool_trace_names": [
         "check_pto_balance",
-        "search_policy_documents",
         "create_mock_hr_ticket"
       ],
       "needs_confirmation": true,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
     },
     {
       "id": "tool-05",
       "category": "tool_requiring",
-      "latency_sec": 0.0232,
-      "answer_preview": "Your current PTO balance is 11.25 days (accrual rate: 1.67 days/month).\nPer Northwind's PTO Policy, your direct manager must approve PTO requests, and requests ",
-      "citations": [
-        "onboarding-checklist",
-        "pto-policy"
-      ],
+      "latency_sec": 0.012,
+      "answer_preview": "Done -- I created mock HR ticket TCK-9C9A51FC as previewed.",
+      "citations": [],
       "tool_trace_names": [
-        "check_pto_balance",
-        "search_policy_documents",
         "create_mock_hr_ticket"
       ],
       "needs_confirmation": false,
@@ -418,55 +416,57 @@
     {
       "id": "tool-06",
       "category": "tool_requiring",
-      "latency_sec": 0.0179,
-      "answer_preview": "Based on your profile (Data Analyst (Contractor), Remote - Toronto, ON) and the Remote Work and Data Security policies, the compliance check for this scenario c",
+      "latency_sec": 21.2532,
+      "answer_preview": "Here's what I found based on your profile and Northwind's Remote Work Policy:\n\n**Your profile:** Rachel Sun, Data Analyst (Contractor), Engineering, official wo",
       "citations": [
+        "data-security-policy",
         "remote-work-policy"
       ],
       "tool_trace_names": [
+        "search_policy_documents",
         "lookup_employee_profile",
-        "check_policy_compliance"
-      ],
-      "needs_confirmation": false,
-      "clarification_needed": false,
-      "escalated": false,
-      "llm_used": false
-    },
-    {
-      "id": "tool-07",
-      "category": "tool_requiring",
-      "latency_sec": 0.0167,
-      "answer_preview": "Based on your profile (Software Engineer, Remote - Denver, CO) and the Remote Work and Data Security policies, the compliance check for this scenario came back:",
-      "citations": [
-        "remote-work-policy"
-      ],
-      "tool_trace_names": [
-        "lookup_employee_profile",
-        "check_policy_compliance"
-      ],
-      "needs_confirmation": false,
-      "clarification_needed": false,
-      "escalated": false,
-      "llm_used": false
-    },
-    {
-      "id": "tool-08",
-      "category": "tool_requiring",
-      "latency_sec": 0.0179,
-      "answer_preview": "Here's what the Northwind Retail Co. \u2014 Benefits Overview says under \"Open Enrollment and Life Events\":\n\nOpen enrollment occurs annually in November for coverage",
-      "citations": [
-        "benefits-overview",
-        "holiday-calendar",
-        "leave-policy",
-        "onboarding-checklist"
-      ],
-      "tool_trace_names": [
         "search_policy_documents"
       ],
       "needs_confirmation": false,
       "clarification_needed": false,
       "escalated": false,
-      "llm_used": false
+      "llm_used": true
+    },
+    {
+      "id": "tool-07",
+      "category": "tool_requiring",
+      "latency_sec": 10.8569,
+      "answer_preview": "Hi Marcus \u2014 here's what the Remote Work Policy says about working from Mexico for a few months:\n\n**Not automatically approved \u2014 requires extra sign-off**\n- Work",
+      "citations": [
+        "remote-work-policy"
+      ],
+      "tool_trace_names": [
+        "check_policy_compliance",
+        "search_policy_documents"
+      ],
+      "needs_confirmation": false,
+      "clarification_needed": false,
+      "escalated": false,
+      "llm_used": true
+    },
+    {
+      "id": "tool-08",
+      "category": "tool_requiring",
+      "latency_sec": 11.1571,
+      "answer_preview": "Here's a draft email (not sent \u2014 draft only):\n\n**To:** E1012\n**Subject:** Reminder: Open Enrollment Ends Soon\n\n> Hi Nora,\n>\n> Open enrollment happens annually i",
+      "citations": [
+        "benefits-overview",
+        "onboarding-checklist"
+      ],
+      "tool_trace_names": [
+        "search_policy_documents",
+        "lookup_benefits_status",
+        "draft_hr_email"
+      ],
+      "needs_confirmation": false,
+      "clarification_needed": false,
+      "escalated": false,
+      "llm_used": true
     },
     {
       "id": "ambiguous-01",
@@ -495,44 +495,38 @@
     {
       "id": "outofscope-01",
       "category": "out_of_scope",
-      "latency_sec": 0.0166,
-      "answer_preview": "I couldn't find anything about that in the Northwind HR policy corpus, so I don't want to guess. This looks out of scope for this assistant -- please contact HR",
+      "latency_sec": 3.6328,
+      "answer_preview": "That's outside what I can help with \u2014 I'm the Northwind Retail Co. HR Assistant, and weather isn't part of the HR policy corpus I have access to. \n\nI can help w",
       "citations": [],
-      "tool_trace_names": [
-        "search_policy_documents"
-      ],
+      "tool_trace_names": [],
       "needs_confirmation": false,
       "clarification_needed": false,
-      "escalated": true,
-      "llm_used": false
+      "escalated": false,
+      "llm_used": true
     },
     {
       "id": "outofscope-02",
       "category": "out_of_scope",
-      "latency_sec": 0.0167,
-      "answer_preview": "I couldn't find anything about that in the Northwind HR policy corpus, so I don't want to guess. This looks out of scope for this assistant -- please contact HR",
+      "latency_sec": 3.1907,
+      "answer_preview": "That's outside the scope of what I can help with \u2014 I'm the Northwind Retail Co. HR Assistant, focused on HR policy questions and routine HR tasks (PTO, benefits",
       "citations": [],
-      "tool_trace_names": [
-        "search_policy_documents"
-      ],
+      "tool_trace_names": [],
       "needs_confirmation": false,
       "clarification_needed": false,
-      "escalated": true,
-      "llm_used": false
+      "escalated": false,
+      "llm_used": true
     },
     {
       "id": "outofscope-03",
       "category": "out_of_scope",
-      "latency_sec": 0.0161,
-      "answer_preview": "I couldn't find anything about that in the Northwind HR policy corpus, so I don't want to guess. This looks out of scope for this assistant -- please contact HR",
+      "latency_sec": 4.3446,
+      "answer_preview": "Filing personal income taxes isn't something I can help with \u2014 it falls outside Northwind's HR policy corpus and this assistant's scope (which covers HR policie",
       "citations": [],
-      "tool_trace_names": [
-        "search_policy_documents"
-      ],
+      "tool_trace_names": [],
       "needs_confirmation": false,
       "clarification_needed": false,
-      "escalated": true,
-      "llm_used": false
+      "escalated": false,
+      "llm_used": true
     }
   ],
   "notes": [

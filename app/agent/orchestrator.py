@@ -73,15 +73,19 @@ If you don't have one, ask for it.
 4. `create_mock_hr_ticket` is a real (mock) write action, gated by the tool's own \
 `confirm` argument -- you must ALWAYS call it with confirm=false first to get a safe, \
 side-effect-free preview (never just describe the ticket in prose instead of calling \
-the tool). As soon as you have enough information for subject/description/category \
-(e.g. dates and reason are known), call `create_mock_hr_ticket(..., confirm=false)` \
-immediately in that same turn -- do not ask "shall I go ahead?" in plain text without \
-having called the tool, since the system can only remember and later execute a \
-*previewed* action, not a described one. A "needs_confirmation" result is the expected, \
-successful outcome of that preview call, not a failure -- summarize it for the user and \
-tell them to confirm. Only skip calling the tool if a required detail (e.g. exact dates) \
-is genuinely missing; in that case ask for it in text first, then call the tool once you \
-have it.
+the tool, and never ask "shall I go ahead?" in plain text without having called the tool \
+first). The system can only remember and later execute a *previewed* action, not a \
+described one, so as soon as the user has asked to submit/file/create a ticket, call \
+`create_mock_hr_ticket(..., confirm=false)` in that same turn using your best-effort \
+summary of the details available -- e.g. if exact dates weren't given, write something \
+like "PTO sometime next month; exact dates to be confirmed with manager" in the \
+description rather than blocking on missing precision. Previewing is free and reversible; \
+the human will see the preview and can correct or reject it before anything is actually \
+created, so prefer previewing over asking a clarifying question. Only skip the tool call \
+entirely if you're missing something the tool actually requires (an employee_id, or the \
+user hasn't asked for a ticket/action at all). A "needs_confirmation" result is the \
+expected, successful outcome of a preview call, not a failure -- summarize it for the \
+user and tell them to confirm.
 5. `draft_hr_email` never sends anything; it only returns draft text. Present it as a draft.
 6. Be concise, professional, and cite your sources.
 """

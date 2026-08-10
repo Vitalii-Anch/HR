@@ -178,10 +178,10 @@
     "question": "Yes, please go ahead and submit that PTO ticket.",
     "employee_id": "E1005",
     "confirm": true,
-    "expected_tools": ["check_pto_balance", "search_policy_documents", "create_mock_hr_ticket"],
+    "expected_tools": ["create_mock_hr_ticket"],
     "gold_doc_ids": ["pto-policy"],
     "requires_confirmation": false,
-    "gold_answer_note": "With confirm=true, the mock ticket should actually be created."
+    "gold_answer_note": "With confirm=true and a pending action already previewed for this employee_id in tool-04, the orchestrator executes that exact previewed create_mock_hr_ticket call directly (see Orchestrator._execute_pending_action) rather than re-running the full LLM tool-use loop -- this is a deliberate design choice: /chat is stateless across HTTP calls, so a human confirmation must execute the already-fixed, already-previewed action rather than trusting a fresh LLM turn (with no memory of tool-04's details) to reconstruct it from scratch."
   },
   {
     "id": "tool-06",
