@@ -8,13 +8,17 @@ chromadb==1.5.9
 
 # Local embeddings (no API key needed)
 sentence-transformers==5.6.1
-torch==2.6.0
+torch==2.9.0
 # NOTE ON TORCH: install the CPU build. On x86_64 use the official CPU wheel index:
-#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+#   pip install torch==2.9.0 --index-url https://download.pytorch.org/whl/cpu
 # On environments that cannot reach download.pytorch.org (e.g. this project's build
 # sandbox, which only allows outbound access to pypi.org/files.pythonhosted.org),
-# `pip install torch==2.6.0` from plain PyPI also resolves to a CPU-only aarch64
-# wheel for this version (no bundled CUDA), so a plain install works there too.
+# `pip install torch==2.9.0` from plain PyPI also resolves to a CPU-only wheel for
+# this version (no bundled CUDA), so a plain install works there too.
+# Originally pinned to 2.6.0; bumped to 2.9.0 because 2.6.0 has no wheel for
+# Python 3.13+ (common on a fresh Windows install as of mid-2026). 2.9.0 still
+# resolves to a CPU-only wheel and remains compatible with the Python 3.10 CI
+# environment.
 #
 # NOTE ON EMBEDDING MODEL WEIGHTS: this project loads the sentence-transformers
 # model `all-MiniLM-L6-v2` from a *local* path rather than at-runtime from the
