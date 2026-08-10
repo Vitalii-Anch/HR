@@ -38,7 +38,13 @@ class LLMClient:
                 )
             import anthropic
 
-            self._client = anthropic.Anthropic()  # reads ANTHROPIC_API_KEY from env
+            # Explicit timeout: the SDK's default is 10 minutes, which would make a
+            # genuinely hung/stalled request indistinguishable from the app itself
+            # being broken (and would block the whole asyncio event loop for that
+            # entire window, since this call is synchronous -- see create_message
+            # below). 45s is generous for a single tool-use turn against a small
+            # tool schema and short policy chunks.
+            self._client = anthropic.Anthropic(timeout=45.0, max_retries=2)  # reads ANTHROPIC_API_KEY from env
         return self._client
 
     def create_message(

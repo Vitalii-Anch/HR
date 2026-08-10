@@ -1,1 +1,11 @@
-[]
+[
+  {
+    "ticket_id": "TCK-0D739712",
+    "employee_id": "E1002",
+    "subject": "PTO Request: Sept 8-10",
+    "description": "Employee E1002 requests PTO from September 8 to September 10 (3 days).",
+    "category": "pto",
+    "status": "open",
+    "created_at": "2026-08-10T15:21:22.576548+00:00"
+  }
+]

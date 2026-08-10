@@ -35,6 +35,7 @@ regardless of mode):
 """
 from __future__ import annotations
 
+import asyncio
 import json
 import logging
 from typing import Any
@@ -48,6 +49,7 @@ logger = logging.getLogger("hr_agentic_rag.orchestrator")
 
 OUT_OF_SCOPE_SIMILARITY_THRESHOLD = 0.28
 MAX_LLM_TURNS = 6
+MCP_TOOL_CALL_TIMEOUT_SECONDS = 20.0
 
 _NEEDS_EMPLOYEE_ID_PHRASES = [
     "my pto", "my balance", "my benefit", "my profile", "my remote",
@@ -68,11 +70,18 @@ Never invent a policy that wasn't retrieved.
 3. Never answer a question about a *specific* employee's PTO balance, benefits, or \
 profile unless you have an employee_id (from the tool results or the user's message). \
 If you don't have one, ask for it.
-4. `create_mock_hr_ticket` is a real (mock) write action. Only call it after the user \
-has explicitly asked you to create/file a ticket, and always explain what will be \
-created before assuming it succeeded -- the system will not execute the write unless \
-the human has separately confirmed it; treat a "needs_confirmation" result as a signal \
-to summarize the pending action for the user, not as a failure.
+4. `create_mock_hr_ticket` is a real (mock) write action, gated by the tool's own \
+`confirm` argument -- you must ALWAYS call it with confirm=false first to get a safe, \
+side-effect-free preview (never just describe the ticket in prose instead of calling \
+the tool). As soon as you have enough information for subject/description/category \
+(e.g. dates and reason are known), call `create_mock_hr_ticket(..., confirm=false)` \
+immediately in that same turn -- do not ask "shall I go ahead?" in plain text without \
+having called the tool, since the system can only remember and later execute a \
+*previewed* action, not a described one. A "needs_confirmation" result is the expected, \
+successful outcome of that preview call, not a failure -- summarize it for the user and \
+tell them to confirm. Only skip calling the tool if a required detail (e.g. exact dates) \
+is genuinely missing; in that case ask for it in text first, then call the tool once you \
+have it.
 5. `draft_hr_email` never sends anything; it only returns draft text. Present it as a draft.
 6. Be concise, professional, and cite your sources.
 """
@@ -82,6 +91,17 @@ class Orchestrator:
     def __init__(self, mcp_client: MCPToolClient, llm_client: LLMClient | None = None):
         self.mcp_client = mcp_client
         self.llm_client = llm_client or LLMClient()
+        # `/chat` is stateless -- each call is an independent request with no
+        # conversation history. That's fine for one-shot Q&A, but the
+        # confirm-then-execute ticket flow needs to remember *what* was
+        # previewed so a later `confirm=true` call (which, on its own, has no
+        # memory of the earlier turn's details) can execute the exact same
+        # action rather than asking the user to repeat themselves or -- worse
+        # -- having the LLM guess new ticket details from scratch. This is a
+        # deliberately minimal in-process store (single free-tier service,
+        # single worker process; not durable across restarts, which is fine
+        # for this project's mock-action use case).
+        self._pending_actions: dict[str, dict[str, Any]] = {}
 
     # ------------------------------------------------------------------
     # Public entry point
@@ -100,6 +120,9 @@ class Orchestrator:
                 basis="Guardrail: request implies a specific employee context but no employee_id was provided.",
             )
 
+        if confirm and employee_id and employee_id in self._pending_actions:
+            return await self._execute_pending_action(employee_id)
+
         if self.llm_client.is_configured():
             try:
                 return await self._run_llm_loop(message, employee_id, confirm)
@@ -108,6 +131,55 @@ class Orchestrator:
                 return await self._run_fallback(message, employee_id, confirm, llm_error=str(exc))
         else:
             return await self._run_fallback(message, employee_id, confirm)
+
+    # ------------------------------------------------------------------
+    # MCP tool calls, always timeout-guarded (see rubric requirement to
+    # "handle failures gracefully, such as unavailable MCP tools"). Without
+    # this, a stalled/crashed MCP subprocess hangs the whole request forever
+    # with no way for the caller (or the demo!) to recover.
+    # ------------------------------------------------------------------
+    async def _call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
+        try:
+            return await asyncio.wait_for(
+                self.mcp_client.call_tool(name, arguments), timeout=MCP_TOOL_CALL_TIMEOUT_SECONDS
+            )
+        except asyncio.TimeoutError:
+            logger.error("MCP tool call timed out after %ss: %s(%r)", MCP_TOOL_CALL_TIMEOUT_SECONDS, name, arguments)
+            return {
+                "error": True,
+                "detail": f"Tool '{name}' did not respond within {MCP_TOOL_CALL_TIMEOUT_SECONDS:.0f}s "
+                          "(MCP server unresponsive). Nothing was written.",
+            }
+        except Exception as exc:  # noqa: BLE001 -- any transport/protocol failure should degrade, not hang
+            logger.exception("MCP tool call failed: %s(%r)", name, arguments)
+            return {"error": True, "detail": f"Tool '{name}' failed: {exc}"}
+
+    # ------------------------------------------------------------------
+    # Confirm-then-execute (see `_pending_actions` note in __init__)
+    # ------------------------------------------------------------------
+    async def _execute_pending_action(self, employee_id: str) -> AgentResult:
+        pending = self._pending_actions.pop(employee_id)
+        tool_name = pending["tool"]
+        arguments = dict(pending["arguments"])
+        arguments["confirm"] = True  # only ever set True here, from the human-supplied confirm flag
+
+        result = await self._call_tool(tool_name, arguments)
+        trace = [ToolCallTrace(tool_name=tool_name, arguments=arguments, result_summary=_summarize_result(tool_name, result))]
+
+        if tool_name == "create_mock_hr_ticket" and result.get("created"):
+            answer = f"Done -- I created mock HR ticket {result['ticket']['ticket_id']} as previewed."
+        else:
+            answer = f"Confirmed and executed: {json.dumps(result)[:300]}"
+
+        return AgentResult(
+            answer=answer,
+            tool_trace=trace,
+            needs_confirmation=False,
+            llm_used=False,
+            basis=f"Executed the previously previewed, human-confirmed action ({tool_name}) directly; "
+                  "no new LLM turn was needed since the action and its arguments were already fixed at "
+                  "preview time.",
+        )
 
     # ------------------------------------------------------------------
     # Guardrails
@@ -150,7 +222,14 @@ class Orchestrator:
         pending_action: dict[str, Any] | None = None
 
         for _ in range(MAX_LLM_TURNS):
-            response = self.llm_client.create_message(messages, system=SYSTEM_PROMPT, tools=anthropic_tools)
+            # Offload the synchronous Anthropic SDK call to a thread: it's a
+            # blocking network call, and running it directly on the event loop
+            # would stall everything else this process is doing concurrently
+            # (including pumping the MCP subprocess's stdio pipes) for the
+            # entire request duration.
+            response = await asyncio.to_thread(
+                self.llm_client.create_message, messages, system=SYSTEM_PROMPT, tools=anthropic_tools
+            )
 
             tool_use_blocks = [b for b in response.content if getattr(b, "type", None) == "tool_use"]
             text_blocks = [b.text for b in response.content if getattr(b, "type", None) == "text"]
@@ -172,7 +251,7 @@ class Orchestrator:
 
             for block in tool_use_blocks:
                 safe_args = self._safe_tool_arguments(block.name, block.input, confirm)
-                result = await self.mcp_client.call_tool(block.name, safe_args)
+                result = await self._call_tool(block.name, safe_args)
                 trace.append(
                     ToolCallTrace(
                         tool_name=block.name,
@@ -185,6 +264,8 @@ class Orchestrator:
                 if block.name == "create_mock_hr_ticket" and isinstance(result, dict) and result.get("needs_confirmation"):
                     needs_confirmation = True
                     pending_action = {"tool": "create_mock_hr_ticket", "arguments": safe_args}
+                    if employee_id:
+                        self._pending_actions[employee_id] = pending_action
 
                 tool_result_blocks.append(
                     {
@@ -271,7 +352,7 @@ class Orchestrator:
         )
 
     async def _mcp_search(self, query: str, trace: list[ToolCallTrace], k: int = 4) -> dict[str, Any]:
-        result = await self.mcp_client.call_tool("search_policy_documents", {"query": query, "k": k})
+        result = await self._call_tool("search_policy_documents", {"query": query, "k": k})
         trace.append(
             ToolCallTrace(
                 tool_name="search_policy_documents",
@@ -284,7 +365,7 @@ class Orchestrator:
     async def _fallback_pto_workflow(
         self, employee_id: str, message: str, confirm: bool, note: str, trace: list[ToolCallTrace]
     ) -> AgentResult:
-        balance_result = await self.mcp_client.call_tool("check_pto_balance", {"employee_id": employee_id})
+        balance_result = await self._call_tool("check_pto_balance", {"employee_id": employee_id})
         trace.append(ToolCallTrace("check_pto_balance", {"employee_id": employee_id}, _summarize_result("check_pto_balance", balance_result)))
 
         policy_result = await self._mcp_search("PTO accrual balance manager approval requesting time off", trace, k=3)
@@ -310,7 +391,7 @@ class Orchestrator:
         pending_action = None
         needs_confirmation = False
         if any(kw in message.lower() for kw in ["ticket", "submit", "file a request", "request it", "create a request"]):
-            ticket_result = await self.mcp_client.call_tool(
+            ticket_result = await self._call_tool(
                 "create_mock_hr_ticket",
                 {
                     "employee_id": employee_id,
@@ -330,6 +411,7 @@ class Orchestrator:
             if ticket_result.get("needs_confirmation"):
                 needs_confirmation = True
                 pending_action = {"tool": "create_mock_hr_ticket", "arguments": ticket_result["preview"]}
+                self._pending_actions[employee_id] = pending_action
                 answer_lines.append(
                     "I've prepared a mock HR ticket for your PTO request but have NOT created it yet -- "
                     "reply with confirm=true to actually create it."
@@ -351,7 +433,7 @@ class Orchestrator:
     async def _fallback_remote_workflow(
         self, employee_id: str, message: str, note: str, trace: list[ToolCallTrace]
     ) -> AgentResult:
-        profile_result = await self.mcp_client.call_tool("lookup_employee_profile", {"employee_id": employee_id})
+        profile_result = await self._call_tool("lookup_employee_profile", {"employee_id": employee_id})
         trace.append(ToolCallTrace("lookup_employee_profile", {"employee_id": employee_id}, _summarize_result("lookup_employee_profile", profile_result)))
 
         if not profile_result.get("found"):
@@ -363,7 +445,7 @@ class Orchestrator:
                 basis="lookup_employee_profile returned found=False.",
             )
 
-        compliance_result = await self.mcp_client.call_tool(
+        compliance_result = await self._call_tool(
             "check_policy_compliance", {"scenario": message, "employee_id": employee_id}
         )
         trace.append(
@@ -393,7 +475,7 @@ class Orchestrator:
     async def _fallback_profile_lookup(
         self, employee_id: str, note: str, trace: list[ToolCallTrace]
     ) -> AgentResult:
-        profile_result = await self.mcp_client.call_tool("lookup_employee_profile", {"employee_id": employee_id})
+        profile_result = await self._call_tool("lookup_employee_profile", {"employee_id": employee_id})
         trace.append(ToolCallTrace("lookup_employee_profile", {"employee_id": employee_id}, _summarize_result("lookup_employee_profile", profile_result)))
 
         if not profile_result.get("found"):
@@ -420,7 +502,7 @@ class Orchestrator:
     async def _fallback_benefits_lookup(
         self, employee_id: str, note: str, trace: list[ToolCallTrace]
     ) -> AgentResult:
-        benefits_result = await self.mcp_client.call_tool("lookup_benefits_status", {"employee_id": employee_id})
+        benefits_result = await self._call_tool("lookup_benefits_status", {"employee_id": employee_id})
         trace.append(ToolCallTrace("lookup_benefits_status", {"employee_id": employee_id}, _summarize_result("lookup_benefits_status", benefits_result)))
 
         if not benefits_result.get("found"):

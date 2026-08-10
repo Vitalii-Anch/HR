@@ -18,7 +18,7 @@ echo
 echo "== Step 1: ask for PTO guidance + request a ticket, WITHOUT confirmation =="
 curl -sS -X POST "$BASE_URL/chat" \
   -H "Content-Type: application/json" \
-  -d '{"message": "What is my PTO balance and can you submit a ticket for a PTO request next month?", "employee_id": "E1002"}' \
+  -d '{"message": "What is my PTO balance, and can you submit a ticket to request PTO from Sept 8 to Sept 10 (3 days)?", "employee_id": "E1002"}' \
   | python3 -m json.tool 2>/dev/null || cat
 
 echo
