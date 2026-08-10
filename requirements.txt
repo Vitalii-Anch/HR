@@ -1,0 +1,54 @@
+# Web / API
+fastapi==0.141.1
+uvicorn[standard]==0.52.1
+python-multipart==0.0.32
+
+# Vector store
+chromadb==1.5.9
+
+# Local embeddings (no API key needed)
+sentence-transformers==5.6.1
+torch==2.6.0
+# NOTE ON TORCH: install the CPU build. On x86_64 use the official CPU wheel index:
+#   pip install torch==2.6.0 --index-url https://download.pytorch.org/whl/cpu
+# On environments that cannot reach download.pytorch.org (e.g. this project's build
+# sandbox, which only allows outbound access to pypi.org/files.pythonhosted.org),
+# `pip install torch==2.6.0` from plain PyPI also resolves to a CPU-only aarch64
+# wheel for this version (no bundled CUDA), so a plain install works there too.
+#
+# NOTE ON EMBEDDING MODEL WEIGHTS: this project loads the sentence-transformers
+# model `all-MiniLM-L6-v2` from a *local* path rather than at-runtime from the
+# Hugging Face Hub. The weights are obtained via the `all-minilm-l6-v2-model`
+# PyPI package below (an official-weights repackage of
+# sentence-transformers/all-MiniLM-L6-v2, distributed as a normal pip wheel).
+# This avoids a runtime dependency on huggingface.co being reachable (it was not
+# reachable in the sandbox this project was built in) and makes model loading
+# fully offline and reproducible via `pip install` alone. See app/rag/embeddings.py.
+all-minilm-l6-v2-model==0.1.2
+
+# Anthropic Claude SDK (LLM calls; reads ANTHROPIC_API_KEY from env at runtime)
+anthropic==0.120.2
+
+# MCP (Model Context Protocol) server + client, stdio transport.
+# Pinned to the 1.x line (FastMCP high-level API + mcp.client.stdio /
+# mcp.client.session.ClientSession) rather than the newer 2.0.0 major version,
+# for API stability and documentation coverage.
+mcp==1.29.0
+# Required for httpx to work through a SOCKS proxy in some sandboxed network
+# environments (harmless extra dependency elsewhere).
+socksio==1.0.0
+
+# Testing
+pytest==9.1.1
+pytest-asyncio==1.4.0
+
+# HTTP client (used by FastAPI TestClient, demo scripts, anthropic, mcp)
+httpx==0.28.1
+
+# Config
+python-dotenv==1.2.2
+pydantic==2.13.4
+
+# Corpus ingestion (markdown / HTML parsing)
+markdown-it-py==4.2.0
+beautifulsoup4==4.15.0

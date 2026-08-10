@@ -1,0 +1,43 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+build/
+dist/
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+
+# Vector store data (rebuilt via scripts/build_index.py)
+data/chroma/
+!data/chroma/.gitkeep
+
+# Extracted local embedding model weights (re-extracted from the
+# all-minilm-l6-v2-model pip package at first run; see app/rag/embeddings.py)
+models/
+
+# pip cache / hf cache used only during sandboxed builds
+.pipcache/
+.hfcache/
+.buildlogs/
+
+# Mock runtime artifacts
+mock_data/tickets_runtime.json
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# Eval outputs (kept in evaluation/results.* explicitly, not ignored)
+
+# Leftover broken git-lock skeletons from a FUSE-mount build-sandbox quirk
+# (see design-and-evaluation.md); harmless, safe to ignore/delete.
+.git_broken_unused*

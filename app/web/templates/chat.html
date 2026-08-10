@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Northwind HR Assistant</title>
+<style>
+  body { font-family: -apple-system, Segoe UI, Roboto, sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; background: #f7f7f8; }
+  h1 { font-size: 1.3rem; }
+  #chat { border: 1px solid #ddd; border-radius: 8px; background: white; padding: 1rem; min-height: 300px; max-height: 55vh; overflow-y: auto; margin-bottom: 1rem; }
+  .msg { margin-bottom: 0.9rem; white-space: pre-wrap; }
+  .msg.user { text-align: right; color: #0a58ca; }
+  .msg.bot { color: #222; }
+  .meta { font-size: 0.75rem; color: #888; margin-top: 0.25rem; }
+  .citations { font-size: 0.8rem; color: #555; margin-top: 0.25rem; }
+  form { display: flex; gap: 0.5rem; }
+  input[type=text] { flex: 1; padding: 0.5rem; border-radius: 6px; border: 1px solid #ccc; }
+  input#employee_id { max-width: 120px; }
+  button { padding: 0.5rem 1rem; border-radius: 6px; border: none; background: #0a58ca; color: white; cursor: pointer; }
+  button:hover { background: #08429c; }
+  .confirm-row { margin-top: 0.5rem; font-size: 0.85rem; }
+  #trace { font-size: 0.75rem; color: #666; background: #fafafa; border: 1px dashed #ccc; padding: 0.5rem; border-radius: 6px; margin-top: 0.5rem; white-space: pre-wrap; }
+</style>
+</head>
+<body>
+<h1>Northwind Retail Co. — HR Assistant (course project demo)</h1>
+<p style="font-size:0.85rem;color:#666;">Synthetic company, synthetic employees. Ask about PTO, benefits, remote work, expenses, leave, etc. Try employee id <code>E1002</code>.</p>
+<div id="chat"></div>
+<form id="chat-form">
+  <input type="text" id="employee_id" placeholder="Employee ID (optional)">
+  <input type="text" id="message" placeholder="Ask an HR question..." required>
+  <label class="confirm-row"><input type="checkbox" id="confirm"> confirm pending action</label>
+  <button type="submit">Send</button>
+</form>
+<div id="trace"></div>
+
+<script>
+const chatEl = document.getElementById('chat');
+const traceEl = document.getElementById('trace');
+const form = document.getElementById('chat-form');
+
+function addMessage(text, cls) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + cls;
+  div.textContent = text;
+  chatEl.appendChild(div);
+  chatEl.scrollTop = chatEl.scrollHeight;
+}
+
+form.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const message = document.getElementById('message').value;
+  const employee_id = document.getElementById('employee_id').value || null;
+  const confirm = document.getElementById('confirm').checked;
+  addMessage(message, 'user');
+  document.getElementById('message').value = '';
+
+  const resp = await fetch('/chat', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({message, employee_id, confirm})
+  });
+  const data = await resp.json();
+  addMessage(data.answer, 'bot');
+
+  if (data.citations && data.citations.length) {
+    const cite = document.createElement('div');
+    cite.className = 'citations';
+    cite.textContent = 'Citations: ' + data.citations.map(c => `${c.title} > ${c.section}`).join(' | ');
+    chatEl.appendChild(cite);
+  }
+  if (data.needs_confirmation) {
+    const note = document.createElement('div');
+    note.className = 'meta';
+    note.textContent = 'Pending action awaiting confirmation. Check "confirm pending action" and resend the same request to proceed.';
+    chatEl.appendChild(note);
+  }
+  traceEl.textContent = 'Tool trace:\n' + JSON.stringify(data.tool_trace, null, 2);
+});
+</script>
+</body>
+</html>

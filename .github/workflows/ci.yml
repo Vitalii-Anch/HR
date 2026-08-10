@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      - name: Build the RAG index from corpus/
+        run: python scripts/build_index.py
+
+      - name: App import / startup smoke check
+        # No ANTHROPIC_API_KEY on purpose: this project must import, build its
+        # index, and start without one. LLM-dependent synthesis is exercised
+        # via a fully mocked/stubbed LLM client in the test suite instead.
+        run: python -c "import app.main; print('app.main imported OK:', app.main.app.title)"
+
+      - name: Run test suite (pytest)
+        env:
+          # Deliberately unset/empty -- tests must pass without a real key.
+          ANTHROPIC_API_KEY: ""
+        run: pytest -v
+
+  deploy-gate:
+    name: Deploy (gated on tests passing)
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    steps:
+      - name: Deployment placeholder
+        run: |
+          echo "All tests passed on main. This job is a placeholder gate for"
+          echo "a real deploy step (e.g. a Render deploy hook / render.yaml"
+          echo "auto-deploy) once real deployment credentials are configured"
+          echo "as repository secrets. No deploy credentials exist yet, so"
+          echo "this job intentionally does nothing beyond confirming the"
+          echo "'test' job succeeded (see the 'needs: test' dependency above)."

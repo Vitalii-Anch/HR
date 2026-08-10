@@ -1,0 +1,17 @@
+[
+  {"employee_id": "E1001", "pto_balance_days": 8.5, "accrual_rate_days_per_month": 1.25, "carryover_days_last_year": 2.0},
+  {"employee_id": "E1002", "pto_balance_days": 14.0, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 5.0},
+  {"employee_id": "E1003", "pto_balance_days": 6.25, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 1.0},
+  {"employee_id": "E1004", "pto_balance_days": 19.5, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 5.0},
+  {"employee_id": "E1005", "pto_balance_days": 11.25, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 4.5},
+  {"employee_id": "E1006", "pto_balance_days": 3.0, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 0.0},
+  {"employee_id": "E1007", "pto_balance_days": 21.0, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 5.0},
+  {"employee_id": "E1008", "pto_balance_days": 16.75, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 5.0},
+  {"employee_id": "E1009", "pto_balance_days": 22.5, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 5.0},
+  {"employee_id": "E1010", "pto_balance_days": 5.0, "accrual_rate_days_per_month": 1.25, "carryover_days_last_year": 0.0},
+  {"employee_id": "E1011", "pto_balance_days": 13.25, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 3.0},
+  {"employee_id": "E1012", "pto_balance_days": 4.0, "accrual_rate_days_per_month": 0.83, "carryover_days_last_year": 0.5},
+  {"employee_id": "E1013", "pto_balance_days": 17.0, "accrual_rate_days_per_month": 1.67, "carryover_days_last_year": 5.0},
+  {"employee_id": "E1014", "pto_balance_days": 0.0, "accrual_rate_days_per_month": 0.0, "carryover_days_last_year": 0.0},
+  {"employee_id": "E1015", "pto_balance_days": 9.75, "accrual_rate_days_per_month": 1.25, "carryover_days_last_year": 0.0}
+]

@@ -1,0 +1,52 @@
+# Render (https://render.com) Blueprint for the single free-tier web service
+# that hosts: FastAPI web app + agent orchestrator + MCP server (launched as
+# a local stdio subprocess by the orchestrator, not a separate Render
+# service) + Chroma RAG index + mock JSON data.
+#
+# Deploy: connect this repo in the Render dashboard ("New +" -> "Blueprint"),
+# point it at this render.yaml, and set ANTHROPIC_API_KEY as a secret
+# environment variable in the dashboard (never commit it). See deployed.md
+# for the actual deployed URL once this has been deployed for real.
+services:
+  - type: web
+    name: hr-agentic-rag
+    runtime: python
+    plan: free
+    region: oregon
+    branch: main
+    buildCommand: |
+      pip install -r requirements.txt
+      python scripts/build_index.py
+    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    healthCheckPath: /health
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false  # set manually in the Render dashboard; never committed
+      - key: ANTHROPIC_MODEL
+        value: claude-sonnet-5
+      - key: EMBEDDING_MODEL_NAME
+        value: all-MiniLM-L6-v2
+      - key: EMBEDDING_MODEL_PATH
+        value: ./models/all-MiniLM-L6-v2
+      - key: CHROMA_PERSIST_DIR
+        value: ./data/chroma
+      - key: CHROMA_COLLECTION_NAME
+        value: hr_policy_docs
+      - key: RETRIEVAL_TOP_K
+        value: "4"
+      - key: MOCK_DATA_DIR
+        value: ./mock_data
+      - key: CORPUS_DIR
+        value: ./corpus
+      - key: MCP_SERVER_COMMAND
+        value: python
+      - key: MCP_SERVER_ARGS
+        value: -m mcp_server.server
+      - key: PYTHON_VERSION
+        value: 3.10.14
+    # NOTE: Render's free tier does not support persistent disks, and free
+    # instances can spin down/redeploy between requests. That's fine here:
+    # the Chroma index and the local embedding model weights are both fully
+    # rebuilt/re-extracted by `buildCommand` on every deploy (idempotent --
+    # see scripts/build_index.py and app/rag/embeddings.py), so there is no
+    # dependency on any state surviving between deploys or restarts.

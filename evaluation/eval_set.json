@@ -1,0 +1,258 @@
+[
+  {
+    "id": "qa-01",
+    "category": "straightforward_qa",
+    "question": "How many PTO days per month do full-time employees accrue in their first three years?",
+    "employee_id": null,
+    "gold_doc_ids": ["pto-policy"],
+    "gold_answer_note": "1.25 days/month (15 days/year) during the first 3 years, per PTO Policy > Eligibility and Accrual."
+  },
+  {
+    "id": "qa-02",
+    "category": "straightforward_qa",
+    "question": "How many unused PTO days can employees carry over into the next year?",
+    "employee_id": null,
+    "gold_doc_ids": ["pto-policy"],
+    "gold_answer_note": "Up to 5 unused PTO days, per PTO Policy > Maximum Balance and Carryover."
+  },
+  {
+    "id": "qa-03",
+    "category": "straightforward_qa",
+    "question": "What day is Independence Day observed on in 2026 and does it fall on a weekend?",
+    "employee_id": null,
+    "gold_doc_ids": ["holiday-calendar"],
+    "gold_answer_note": "July 3, 2026 (observed), per Holiday Calendar Policy > Observed Holidays."
+  },
+  {
+    "id": "qa-04",
+    "category": "straightforward_qa",
+    "question": "How many floating holidays do full-time employees get per year?",
+    "employee_id": null,
+    "gold_doc_ids": ["holiday-calendar"],
+    "gold_answer_note": "2 floating holidays per year, per Holiday Calendar Policy > Floating Holidays."
+  },
+  {
+    "id": "qa-05",
+    "category": "straightforward_qa",
+    "question": "What is the daily meal expense cap while traveling on Company business?",
+    "employee_id": null,
+    "gold_doc_ids": ["expense-policy"],
+    "gold_answer_note": "$75 USD per day, per Expense Policy > Categories of Reimbursable Expenses."
+  },
+  {
+    "id": "qa-06",
+    "category": "straightforward_qa",
+    "question": "How much is the annual home office stipend for remote and hybrid employees?",
+    "employee_id": null,
+    "gold_doc_ids": ["expense-policy"],
+    "gold_answer_note": "$500 USD per year, per Expense Policy > Categories of Reimbursable Expenses."
+  },
+  {
+    "id": "qa-07",
+    "category": "straightforward_qa",
+    "question": "How quickly must a suspected data security incident be reported to IT Security?",
+    "employee_id": null,
+    "gold_doc_ids": ["data-security-policy"],
+    "gold_answer_note": "Within 24 hours of discovery, per Data Security Policy > Incident Reporting."
+  },
+  {
+    "id": "qa-08",
+    "category": "straightforward_qa",
+    "question": "What is Northwind's 401(k) match formula?",
+    "employee_id": null,
+    "gold_doc_ids": ["benefits-overview"],
+    "gold_answer_note": "100% of the first 3% contributed plus 50% of the next 2%, per Benefits Overview > Retirement 401(k)."
+  },
+  {
+    "id": "qa-09",
+    "category": "straightforward_qa",
+    "question": "When does a new full-time hire become eligible for medical benefits?",
+    "employee_id": null,
+    "gold_doc_ids": ["benefits-overview"],
+    "gold_answer_note": "The first of the month following 30 days of employment, per Benefits Overview > Eligibility."
+  },
+  {
+    "id": "qa-10",
+    "category": "straightforward_qa",
+    "question": "How many weeks of paid parental leave do non-birthing parents get?",
+    "employee_id": null,
+    "gold_doc_ids": ["leave-policy"],
+    "gold_answer_note": "6 weeks at 100% of base pay, per Leave Policy > Parental Leave."
+  },
+  {
+    "id": "qa-11",
+    "category": "straightforward_qa",
+    "question": "What happens if a Company laptop is lost or stolen?",
+    "employee_id": null,
+    "gold_doc_ids": ["equipment-policy", "data-security-policy"],
+    "gold_answer_note": "Must be reported to IT within 24 hours (Equipment Policy > Care, Loss, and Damage; Data Security Policy > Incident Reporting)."
+  },
+  {
+    "id": "qa-12",
+    "category": "straightforward_qa",
+    "question": "How long does a Performance Improvement Plan (PIP) typically run?",
+    "employee_id": null,
+    "gold_doc_ids": ["performance-management-policy"],
+    "gold_answer_note": "30 to 60 days, per Performance Management Policy > Performance Improvement Plans."
+  },
+  {
+    "id": "qa-13",
+    "category": "straightforward_qa",
+    "question": "How often are Northwind employees paid, and on what day?",
+    "employee_id": null,
+    "gold_doc_ids": ["compensation-pay-policy"],
+    "gold_answer_note": "Biweekly, on every other Friday, per Compensation and Pay Policy > Pay Periods and Paydays."
+  },
+  {
+    "id": "qa-14",
+    "category": "straightforward_qa",
+    "question": "What are the core expectations under the Workplace Conduct Policy?",
+    "employee_id": null,
+    "gold_doc_ids": ["workplace-conduct-policy"],
+    "gold_answer_note": "Respect, professionalism, legal/policy compliance, honesty, disclosed conflicts of interest, per Workplace Conduct Policy > Core Expectations."
+  },
+  {
+    "id": "multi-01",
+    "category": "multi_document",
+    "question": "If I take medical leave for 8 weeks, do I keep accruing PTO, and does my health insurance keep going?",
+    "employee_id": null,
+    "gold_doc_ids": ["leave-policy", "benefits-overview"],
+    "gold_answer_note": "PTO continues accruing during the first 12 weeks of Company-paid leave (Leave Policy > Interaction with PTO and Benefits); health benefits continue with the employee paying their normal share (Leave Policy Section 5, cross-referencing Benefits Overview)."
+  },
+  {
+    "id": "multi-02",
+    "category": "multi_document",
+    "question": "I'm a hybrid employee who wants to work from a different state next month -- what approvals do I need, and does my equipment or security setup change?",
+    "employee_id": null,
+    "gold_doc_ids": ["remote-work-policy", "data-security-policy"],
+    "gold_answer_note": "Manager approval + a Payroll tax-registration check for the new state (Remote Work Policy > Manager and Location Approval), and continued compliance with VPN/device rules (Data Security Policy > Remote and Home Network Security)."
+  },
+  {
+    "id": "multi-03",
+    "category": "multi_document",
+    "question": "If I'm terminated for a Workplace Conduct Policy violation, what happens to my unused PTO and my Company laptop?",
+    "employee_id": null,
+    "gold_doc_ids": ["pto-policy", "equipment-policy"],
+    "gold_answer_note": "PTO is paid out up to the carryover cap per state law (PTO Policy > Payout on Separation); equipment must be returned within 5 business days (Equipment Policy > Return of Equipment)."
+  },
+  {
+    "id": "tool-01",
+    "category": "tool_requiring",
+    "question": "What is my current PTO balance and accrual rate?",
+    "employee_id": "E1002",
+    "expected_tools": ["check_pto_balance"],
+    "gold_doc_ids": [],
+    "gold_answer_note": "Should call check_pto_balance for E1002 and report 14.0 days / 1.67 per month."
+  },
+  {
+    "id": "tool-02",
+    "category": "tool_requiring",
+    "question": "Can you look up my employee profile -- what's my role and department?",
+    "employee_id": "E1003",
+    "expected_tools": ["lookup_employee_profile"],
+    "gold_doc_ids": [],
+    "gold_answer_note": "Should call lookup_employee_profile for E1003 and report HR Business Partner / People & Culture."
+  },
+  {
+    "id": "tool-03",
+    "category": "tool_requiring",
+    "question": "What benefits am I currently enrolled in?",
+    "employee_id": "E1010",
+    "expected_tools": ["lookup_benefits_status"],
+    "gold_doc_ids": [],
+    "gold_answer_note": "Should call lookup_benefits_status for E1010 (Core PPO, no 401k enrollment)."
+  },
+  {
+    "id": "tool-04",
+    "category": "tool_requiring",
+    "question": "What's my PTO balance and please submit a ticket to request time off next month.",
+    "employee_id": "E1005",
+    "expected_tools": ["check_pto_balance", "search_policy_documents", "create_mock_hr_ticket"],
+    "gold_doc_ids": ["pto-policy"],
+    "requires_confirmation": true,
+    "gold_answer_note": "Should check PTO balance, retrieve PTO policy, and prepare (not create) a mock ticket pending confirmation."
+  },
+  {
+    "id": "tool-05",
+    "category": "tool_requiring",
+    "question": "Yes, please go ahead and submit that PTO ticket.",
+    "employee_id": "E1005",
+    "confirm": true,
+    "expected_tools": ["check_pto_balance", "search_policy_documents", "create_mock_hr_ticket"],
+    "gold_doc_ids": ["pto-policy"],
+    "requires_confirmation": false,
+    "gold_answer_note": "With confirm=true, the mock ticket should actually be created."
+  },
+  {
+    "id": "tool-06",
+    "category": "tool_requiring",
+    "question": "Am I eligible to work remotely from Canada for two months?",
+    "employee_id": "E1014",
+    "expected_tools": ["lookup_employee_profile", "check_policy_compliance"],
+    "gold_doc_ids": ["remote-work-policy"],
+    "gold_answer_note": "Should look up the employee profile (contractor, already remote in Canada) and check compliance against the Remote Work Policy."
+  },
+  {
+    "id": "tool-07",
+    "category": "tool_requiring",
+    "question": "Can I work remotely from Mexico for a few months?",
+    "employee_id": "E1002",
+    "expected_tools": ["lookup_employee_profile", "check_policy_compliance"],
+    "gold_doc_ids": ["remote-work-policy"],
+    "gold_answer_note": "Should flag manager/legal approval requirements and possible ineligibility per Remote Work Policy > Manager and Location Approval / Tax and Legal Considerations."
+  },
+  {
+    "id": "tool-08",
+    "category": "tool_requiring",
+    "question": "Please draft an email to me reminding me that open enrollment ends soon.",
+    "employee_id": "E1012",
+    "expected_tools": [],
+    "gold_doc_ids": [],
+    "gold_answer_note": "Should produce a draft_hr_email-style draft; never actually sends anything (this item is checked qualitatively, not via the fallback router)."
+  },
+  {
+    "id": "ambiguous-01",
+    "category": "ambiguous",
+    "question": "What is my PTO balance?",
+    "employee_id": null,
+    "expects_clarification": true,
+    "gold_doc_ids": [],
+    "gold_answer_note": "Missing employee_id; the assistant must ask for it rather than guessing or refusing outright."
+  },
+  {
+    "id": "ambiguous-02",
+    "category": "ambiguous",
+    "question": "Am I eligible to work remotely?",
+    "employee_id": null,
+    "expects_clarification": true,
+    "gold_doc_ids": [],
+    "gold_answer_note": "Missing employee_id; the assistant must ask for it before checking role-based remote eligibility."
+  },
+  {
+    "id": "outofscope-01",
+    "category": "out_of_scope",
+    "question": "What's the weather like today?",
+    "employee_id": null,
+    "expects_escalation": true,
+    "gold_doc_ids": [],
+    "gold_answer_note": "Not an HR policy question; assistant should decline rather than hallucinate."
+  },
+  {
+    "id": "outofscope-02",
+    "category": "out_of_scope",
+    "question": "What's the best pizza topping?",
+    "employee_id": null,
+    "expects_escalation": true,
+    "gold_doc_ids": [],
+    "gold_answer_note": "Not an HR policy question; assistant should decline rather than hallucinate."
+  },
+  {
+    "id": "outofscope-03",
+    "category": "out_of_scope",
+    "question": "Can you help me file my personal income taxes?",
+    "employee_id": null,
+    "expects_escalation": true,
+    "gold_doc_ids": [],
+    "gold_answer_note": "Outside the Northwind HR policy corpus (personal tax filing, not Company payroll tax policy); assistant should decline/redirect."
+  }
+]
