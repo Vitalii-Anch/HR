@@ -38,6 +38,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from typing import Any
 
 from app.agent.llm_client import LLMClient, LLMNotConfiguredError
@@ -49,7 +50,15 @@ logger = logging.getLogger("hr_agentic_rag.orchestrator")
 
 OUT_OF_SCOPE_SIMILARITY_THRESHOLD = 0.28
 MAX_LLM_TURNS = 6
-MCP_TOOL_CALL_TIMEOUT_SECONDS = 20.0
+# Configurable per-environment: free-tier hosts (e.g. Render's free plan) run
+# on heavily CPU-throttled shared instances, and the same single process also
+# fields Render's own frequent internal health-check pings -- observed in
+# practice to occasionally stall even a trivial, non-ML MCP tool call (plain
+# JSON file reads) well past a locally-reasonable timeout. Default is higher
+# than what was needed in local testing to absorb that contention; override
+# via MCP_TOOL_CALL_TIMEOUT_SECONDS if a specific host needs more headroom.
+MCP_TOOL_CALL_TIMEOUT_SECONDS = float(os.getenv("MCP_TOOL_CALL_TIMEOUT_SECONDS", "35"))
+MCP_TOOL_CALL_MAX_ATTEMPTS = int(os.getenv("MCP_TOOL_CALL_MAX_ATTEMPTS", "3"))
 
 _NEEDS_EMPLOYEE_ID_PHRASES = [
     "my pto", "my balance", "my benefit", "my profile", "my remote",
@@ -143,20 +152,35 @@ class Orchestrator:
     # with no way for the caller (or the demo!) to recover.
     # ------------------------------------------------------------------
     async def _call_tool(self, name: str, arguments: dict[str, Any]) -> Any:
-        try:
-            return await asyncio.wait_for(
-                self.mcp_client.call_tool(name, arguments), timeout=MCP_TOOL_CALL_TIMEOUT_SECONDS
-            )
-        except asyncio.TimeoutError:
-            logger.error("MCP tool call timed out after %ss: %s(%r)", MCP_TOOL_CALL_TIMEOUT_SECONDS, name, arguments)
-            return {
-                "error": True,
-                "detail": f"Tool '{name}' did not respond within {MCP_TOOL_CALL_TIMEOUT_SECONDS:.0f}s "
-                          "(MCP server unresponsive). Nothing was written.",
-            }
-        except Exception as exc:  # noqa: BLE001 -- any transport/protocol failure should degrade, not hang
-            logger.exception("MCP tool call failed: %s(%r)", name, arguments)
-            return {"error": True, "detail": f"Tool '{name}' failed: {exc}"}
+        last_error: str | None = None
+        for attempt in range(1, MCP_TOOL_CALL_MAX_ATTEMPTS + 1):
+            try:
+                return await asyncio.wait_for(
+                    self.mcp_client.call_tool(name, arguments), timeout=MCP_TOOL_CALL_TIMEOUT_SECONDS
+                )
+            except asyncio.TimeoutError:
+                last_error = (
+                    f"Tool '{name}' did not respond within {MCP_TOOL_CALL_TIMEOUT_SECONDS:.0f}s "
+                    "(MCP server unresponsive)."
+                )
+                logger.error(
+                    "MCP tool call timed out after %ss (attempt %s/%s): %s(%r)",
+                    MCP_TOOL_CALL_TIMEOUT_SECONDS, attempt, MCP_TOOL_CALL_MAX_ATTEMPTS, name, arguments,
+                )
+            except Exception as exc:  # noqa: BLE001 -- any transport/protocol failure should degrade, not hang
+                last_error = f"Tool '{name}' failed: {exc}"
+                logger.exception(
+                    "MCP tool call failed (attempt %s/%s): %s(%r)",
+                    attempt, MCP_TOOL_CALL_MAX_ATTEMPTS, name, arguments,
+                )
+            if attempt < MCP_TOOL_CALL_MAX_ATTEMPTS:
+                await asyncio.sleep(0.5)  # brief pause before retrying; a stalled pipe rarely clears instantly
+
+        # Every attempt failed: degrade gracefully rather than propagating/hanging.
+        # Note nothing was written for any tool -- create_mock_hr_ticket only ever
+        # writes on confirm=true, and this is the outcome the caller (LLM loop or
+        # fallback) sees if even that final attempt didn't go through.
+        return {"error": True, "detail": (last_error or "unknown error") + " Nothing was written."}
 
     # ------------------------------------------------------------------
     # Confirm-then-execute (see `_pending_actions` note in __init__)

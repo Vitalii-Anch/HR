@@ -44,6 +44,10 @@ services:
         value: -m mcp_server.server
       - key: PYTHON_VERSION
         value: 3.10.14
+      - key: MCP_TOOL_CALL_TIMEOUT_SECONDS
+        value: "35"  # free-tier CPU throttling can stall even trivial MCP calls; see orchestrator.py
+      - key: MCP_TOOL_CALL_MAX_ATTEMPTS
+        value: "3"
     # NOTE: Render's free tier does not support persistent disks, and free
     # instances can spin down/redeploy between requests. That's fine here:
     # the Chroma index and the local embedding model weights are both fully
