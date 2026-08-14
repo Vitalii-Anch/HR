@@ -16,6 +16,7 @@ index with no stale or duplicate chunks.
 """
 from __future__ import annotations
 
+import threading
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -34,10 +35,27 @@ class IngestStats:
     doc_ids: list[str]
 
 
+# Process-wide cached PersistentClient (mirrors app/rag/embeddings.py's model
+# caching). Constructing a fresh chromadb.PersistentClient re-opens the
+# on-disk SQLite-backed store from scratch -- cheap on a fast local SSD, but
+# on a CPU/I/O-throttled free-tier host this was observed to add enough
+# latency, on every single retrieve() call (i.e. every RAG-backed MCP tool
+# call), to blow past the MCP tool-call timeout entirely. Every retrieve()
+# call used to construct a brand-new client; now the client (and therefore
+# its underlying storage connection) is opened once per process.
+_CLIENT: chromadb.PersistentClient | None = None
+_CLIENT_LOCK = threading.Lock()
+
+
 def _get_client() -> chromadb.PersistentClient:
-    persist_dir = settings.resolve(settings.chroma_persist_dir)
-    persist_dir.mkdir(parents=True, exist_ok=True)
-    return chromadb.PersistentClient(path=str(persist_dir))
+    global _CLIENT
+    if _CLIENT is None:
+        with _CLIENT_LOCK:
+            if _CLIENT is None:
+                persist_dir = settings.resolve(settings.chroma_persist_dir)
+                persist_dir.mkdir(parents=True, exist_ok=True)
+                _CLIENT = chromadb.PersistentClient(path=str(persist_dir))
+    return _CLIENT
 
 
 def get_collection(client: chromadb.PersistentClient | None = None, create: bool = True):

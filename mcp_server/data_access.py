@@ -12,6 +12,7 @@ from __future__ import annotations
 
 import json
 import logging
+import threading
 import uuid
 from datetime import datetime, timezone
 from pathlib import Path
@@ -20,17 +21,40 @@ from app.config import settings
 
 logger = logging.getLogger("hr_agentic_rag.mock_data")
 
+# Small in-process cache for the read-only mock datasets (employees, PTO
+# balances, benefits -- never written to at runtime). Re-reading and
+# JSON-parsing these small files from disk on every single tool call is
+# unnecessary I/O; on a throttled free-tier host every bit of avoidable
+# per-request I/O adds latency risk, and this mirrors the caching already
+# applied to the embedding model and the Chroma client (see
+# app/rag/embeddings.py, app/rag/ingest.py). `tickets.json` is deliberately
+# NOT cached here since create_ticket() writes to it at runtime and callers
+# must always see the current on-disk state.
+_READ_ONLY_CACHE: dict[str, list[dict]] = {}
+_READ_ONLY_CACHE_LOCK = threading.Lock()
+_READ_ONLY_FILES = {"employees.json", "pto_balances.json", "benefits.json"}
+
 
 def _data_dir() -> Path:
     return settings.resolve(settings.mock_data_dir)
 
 
-def _load_json(filename: str) -> list[dict]:
+def _read_json_from_disk(filename: str) -> list[dict]:
     path = _data_dir() / filename
     if not path.exists():
         return []
     with path.open("r", encoding="utf-8") as f:
         return json.load(f)
+
+
+def _load_json(filename: str) -> list[dict]:
+    if filename not in _READ_ONLY_FILES:
+        return _read_json_from_disk(filename)
+    if filename not in _READ_ONLY_CACHE:
+        with _READ_ONLY_CACHE_LOCK:
+            if filename not in _READ_ONLY_CACHE:
+                _READ_ONLY_CACHE[filename] = _read_json_from_disk(filename)
+    return _READ_ONLY_CACHE[filename]
 
 
 def _save_json(filename: str, data: list[dict]) -> None:

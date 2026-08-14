@@ -27,6 +27,7 @@ within a process (ingestion, then many retrieval calls) do not reload it.
 """
 from __future__ import annotations
 
+import os
 import threading
 from pathlib import Path
 from typing import Iterable
@@ -36,9 +37,33 @@ from app.config import settings
 _MODEL = None
 _MODEL_LOCK = threading.Lock()
 
+# PyTorch/OpenMP/MKL default to spawning one thread per *visible* CPU core.
+# In a cgroup-CPU-limited container (e.g. Render's free tier, which grants a
+# small fraction of a core but the container still reports the host's full
+# core count), that causes severe thread-contention overhead on every
+# inference call -- observed in practice to turn a sub-second embedding call
+# into one that blows past a generous MCP tool-call timeout. Capping thread
+# count to a small, fixed number avoids oversubscribing a CPU quota the
+# process doesn't actually have. Must be set before torch/numpy are first
+# imported in this process for the env vars to take effect, which is why
+# this runs at module import time here (this module is always imported
+# before any torch-dependent code needs to run) rather than inside
+# _load_model(). Override via EMBEDDING_NUM_THREADS if a host has more
+# headroom.
+_NUM_THREADS = os.getenv("EMBEDDING_NUM_THREADS", "2")
+os.environ.setdefault("OMP_NUM_THREADS", _NUM_THREADS)
+os.environ.setdefault("MKL_NUM_THREADS", _NUM_THREADS)
+os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
+
 
 def _load_model():
+    import torch
     from sentence_transformers import SentenceTransformer
+
+    try:
+        torch.set_num_threads(int(_NUM_THREADS))
+    except Exception:
+        pass  # best-effort; the OMP/MKL env vars above are the primary control
 
     model_path = settings.resolve(settings.embedding_model_path)
     marker = model_path / "config.json"
