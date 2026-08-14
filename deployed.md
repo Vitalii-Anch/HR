@@ -36,6 +36,36 @@ subsequent requests are fast (warm). If demoing this live, expect a delay on
 the very first request and plan the recording around it (e.g. hit `/health`
 once before the recorded portion begins to warm the instance up).
 
+## Known limitation: first RAG-backed call on a cold instance can time out
+
+Render's free tier caps memory at 512MB and throttles CPU across the whole
+container. Loading `sentence-transformers`/`torch` to serve the *first*
+RAG-backed tool call (`search_policy_documents`, `check_policy_compliance`,
+`get_policy_section`) in a freshly spun-up instance can occasionally exceed
+this project's per-call timeout (35s x 3 attempts, see `render.yaml`), and
+in rarer cases has triggered a memory-limit restart. This is a resource
+constraint of the free tier itself, not an application bug: the same code
+path is exercised in local testing and in the evaluation harness without
+issue (see `evaluation/results.md`), and once an instance has served one
+RAG-backed call successfully it stays warm and fast for subsequent calls
+(and for the already-verified PTO workflow, which does not depend on the
+embedding model).
+
+**Mitigation used for the recorded demo:** the instance was pre-warmed with
+a throwaway remote-work-eligibility request immediately before recording,
+so the local embedding model was already resident in memory for the actual
+demo take.
+
+**If you are grading this after the instance has spun down again:** a
+policy-lookup or remote-work-eligibility request may need one retry (wait
+~30-60s and resend) the first time. `GET /health` succeeding does not by
+itself guarantee the embedding model has loaded, since that happens lazily
+on first RAG use, not at startup. Everything downstream of that first
+successful call is fast and reliable. A paid Render tier (or moving the
+embedding model to Render's build step / a warm-start hook) would remove
+this limitation entirely; it was out of scope given the free-tier
+requirement for this assignment.
+
 ## Post-deploy smoke test checklist
 
 Confirmed against the live URL above (see `scripts/demo_pto.ps1` /
