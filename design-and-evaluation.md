@@ -70,23 +70,41 @@ one chunk.
 
 ### 2.2 Embedding model choice
 
-`sentence-transformers/all-MiniLM-L6-v2`: small (~90MB), fast, free, runs
-entirely locally on CPU, and produces 384-dimensional embeddings that work
-well for short-to-medium policy text — no API key or network dependency for
-the retrieval half of the system, which was a hard requirement given this
-project must run and be tested without an `ANTHROPIC_API_KEY`.
+**Current implementation: pure-Python TF-IDF** (`app/rag/embeddings.py`), no
+PyTorch, no ONNX runtime, no model weights. This replaced an earlier
+implementation that used `sentence-transformers/all-MiniLM-L6-v2` (a small,
+~90MB, locally-run neural embedding model). That implementation worked
+correctly and produced good retrieval quality in local testing and CI, but
+importing PyTorch inside the MCP server subprocess reliably added 200-400MB
+of resident memory on top of the rest of the app's footprint, which
+exceeded Render free tier's 512MB container memory cap the first time a
+RAG-backed tool call loaded it — a reproducible production OOM crash (see
+`deployed.md` for the incident and the memory measurements after the fix).
 
-**A build-environment-driven refinement:** the sandbox this project was
-built in could reach `pypi.org` but not `huggingface.co`, so downloading the
-model directly from the Hugging Face Hub at runtime (the usual
-`SentenceTransformer("all-MiniLM-L6-v2")` call) would fail. Rather than
-special-case the sandbox, the project loads the model from a **local path**
-(`app/rag/embeddings.py`), populated via the `all-minilm-l6-v2-model` PyPI
-package — a normal pip wheel that bundles the official model weights. This
-is a genuine engineering improvement, not just a workaround: it makes cold
-starts on a free-tier host faster and more reliable (no dependency on
-huggingface.co's availability/latency at deploy time), while still falling
-back to a Hub download if that package is ever unavailable.
+Given a small (12-document, ~56KB), topically well-separated HR policy
+corpus, and a hard free-tier memory budget, TF-IDF cosine similarity is a
+well-understood classical-IR alternative to dense neural embeddings: no
+large model weights, negligible memory (a fitted vocabulary + IDF table,
+serialized as one ~45KB JSON file), and effectively instant to compute (no
+model load time at all, versus a multi-second PyTorch import). Retrieval
+still needs no API key or network dependency, satisfying the same hard
+requirement that the retrieval half of the system work without
+`ANTHROPIC_API_KEY`.
+
+**Tradeoff:** TF-IDF matches on literal/lexical term overlap rather than
+learned semantic similarity, so a paraphrased query that shares little
+vocabulary with the relevant chunk retrieves worse than with dense neural
+embeddings would. Two mitigations are implemented: (1) each chunk's
+embedding is computed from its document title + section heading + body
+text, not body text alone, so a query term that only appears in a heading
+(e.g. "carryover" in "Maximum Balance and Carryover", where the body always
+writes "carry over" as two words) still matches; (2) a hand-rolled English
+stopword list is filtered out of both documents and queries before
+vectorizing, since without it, generic connective words shared by nearly
+every chunk (including boilerplate "Purpose"/"Overview" sections) dominate
+the similarity score and regularly outrank the chunk that actually contains
+the query's distinguishing term. See `evaluation/results.md` for retrieval
+metrics measured under this design (recall@4 ≈ 0.90 on the eval set).
 
 ### 2.3 Vector store: Chroma (persistent, local)
 

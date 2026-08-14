@@ -28,43 +28,41 @@
 
 Render's free tier spins the service down after a period of inactivity. The
 first request after a spin-down triggers Render's own "waking up" splash
-page (visible in-browser), followed by the app's own startup sequence
-(loading the local embedding model, rebuilding the Chroma index from
-`corpus/`, and connecting the MCP client to the MCP server subprocess over
-stdio). In practice this cold start takes roughly 30-90 seconds end to end;
-subsequent requests are fast (warm). If demoing this live, expect a delay on
-the very first request and plan the recording around it (e.g. hit `/health`
-once before the recorded portion begins to warm the instance up).
+page (visible in-browser) while Render brings up a fresh container and the
+app's own startup sequence runs (connecting the MCP client to the MCP
+server subprocess over stdio; the Chroma index and TF-IDF vocabulary are
+pre-built at deploy time, not at request time). This typically takes well
+under Render's own spin-up window; if demoing live, hit `/health` once
+before the recorded portion begins just to confirm the instance is awake.
 
-## Known limitation: first RAG-backed call on a cold instance can time out
+## Resolved: OOM crash on the first RAG-backed call
 
-Render's free tier caps memory at 512MB and throttles CPU across the whole
-container. Loading `sentence-transformers`/`torch` to serve the *first*
-RAG-backed tool call (`search_policy_documents`, `check_policy_compliance`,
-`get_policy_section`) in a freshly spun-up instance can occasionally exceed
-this project's per-call timeout (35s x 3 attempts, see `render.yaml`), and
-in rarer cases has triggered a memory-limit restart. This is a resource
-constraint of the free tier itself, not an application bug: the same code
-path is exercised in local testing and in the evaluation harness without
-issue (see `evaluation/results.md`), and once an instance has served one
-RAG-backed call successfully it stays warm and fast for subsequent calls
-(and for the already-verified PTO workflow, which does not depend on the
-embedding model).
+**Root cause found and fixed.** Earlier deploys crashed with "Ran out of
+memory (used over 512MB)" and/or a health-check timeout, reliably on the
+first `search_policy_documents`/`check_policy_compliance` call in a fresh
+instance. Root cause: importing PyTorch (via `sentence-transformers`) inside
+the MCP server subprocess to serve that first call added 200-400MB of
+resident memory on top of the app's baseline, which exceeded the free
+tier's 512MB container cap.
 
-**Mitigation used for the recorded demo:** the instance was pre-warmed with
-a throwaway remote-work-eligibility request immediately before recording,
-so the local embedding model was already resident in memory for the actual
-demo take.
+**Fix:** replaced the PyTorch/sentence-transformers embedding pipeline with
+a pure-Python TF-IDF implementation (`app/rag/embeddings.py`) -- no PyTorch,
+no model weights, negligible memory. See `design-and-evaluation.md` §2.2
+for the full design writeup and retrieval-quality tradeoff discussion, and
+`evaluation/results.md` for updated metrics.
 
-**If you are grading this after the instance has spun down again:** a
-policy-lookup or remote-work-eligibility request may need one retry (wait
-~30-60s and resend) the first time. `GET /health` succeeding does not by
-itself guarantee the embedding model has loaded, since that happens lazily
-on first RAG use, not at startup. Everything downstream of that first
-successful call is fast and reliable. A paid Render tier (or moving the
-embedding model to Render's build step / a warm-start hook) would remove
-this limitation entirely; it was out of scope given the free-tier
-requirement for this assignment.
+**Measured impact:** running both demo workflows (PTO + remote-work
+eligibility) back to back against a fresh local instance, combined resident
+memory across the main process and the MCP subprocess was ~229MB (main
+~119MB + MCP subprocess ~110MB) -- well within the 512MB cap, versus
+reliably exceeding it before this fix. Also fixed in the same pass: the MCP
+subprocess wasn't inheriting this project's environment variables at all
+(a separate pre-existing bug in `app/agent/mcp_client.py` -- the MCP SDK's
+`stdio_client` only passes through a small hardcoded safe-list of env vars
+unless told otherwise), so it was silently running on `app/config.py`'s
+hardcoded defaults rather than whatever `render.yaml`/the Render dashboard
+actually configured. Those defaults happened to match render.yaml's values,
+so this didn't cause a visible bug, but it's now fixed for correctness.
 
 ## Post-deploy smoke test checklist
 

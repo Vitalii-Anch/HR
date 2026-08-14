@@ -48,7 +48,17 @@ from app.rag.retrieval import retrieve, format_citations
 
 logger = logging.getLogger("hr_agentic_rag.orchestrator")
 
-OUT_OF_SCOPE_SIMILARITY_THRESHOLD = 0.28
+# Calibrated for TF-IDF cosine-similarity scores (see app/rag/embeddings.py),
+# which run in a lower, more compressed range than the dense neural-embedding
+# scores this threshold was originally tuned for (that implementation was
+# replaced due to a Render free-tier memory constraint; see deployed.md).
+# retrieve() already returns an empty list outright for a query with zero
+# lexical overlap with the corpus (the clear-cut out-of-scope case), so this
+# threshold's remaining job is only to catch weak/incidental partial-word
+# matches -- it intentionally sits well below real in-corpus match scores
+# (empirically ~0.15-0.65 for genuine matches on this corpus) to avoid
+# false-rejecting legitimate queries.
+OUT_OF_SCOPE_SIMILARITY_THRESHOLD = 0.12
 MAX_LLM_TURNS = 6
 # Configurable per-environment: free-tier hosts (e.g. Render's free plan) run
 # on heavily CPU-throttled shared instances, and the same single process also

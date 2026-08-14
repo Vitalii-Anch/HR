@@ -1,5 +1,16 @@
 # Evaluation Results
 
+> **Update:** the embedding pipeline changed from `sentence-transformers`/
+> PyTorch to a pure-Python TF-IDF implementation (see `design-and-evaluation.md`
+> §2.2 and `deployed.md` for why -- a Render free-tier memory constraint).
+> The **fallback-mode numbers below are current**, regenerated against the
+> new implementation. The **real-Claude-mode column is from before the
+> switch** and needs a fresh run once `ANTHROPIC_API_KEY` is set locally:
+> `python evaluation/run_eval.py`. Expect the tool-selection/workflow/
+> action-safety numbers to hold (those don't depend on embeddings), and the
+> citation/groundedness numbers to shift slightly (TF-IDF retrieves the same
+> right documents on this eval set, just via different chunk rankings).
+
 These numbers were produced by real runs of `evaluation/run_eval.py` against
 the 30-item `evaluation/eval_set.json`, in both operating modes this project
 supports: the deterministic fallback (no `ANTHROPIC_API_KEY`) and the real
@@ -40,9 +51,14 @@ no gold doc by design).
 
 | k | recall@k | mean gold-doc coverage | mean top-1 score | mean latency (s) |
 |---|---|---|---|---|
-| 2 | 1.0000 | 0.9048 | 0.7442 | 0.173 |
-| 4 | 1.0000 | 0.9524 | 0.7442 | 0.020 |
-| 6 | 1.0000 | 0.9762 | 0.7442 | 0.020 |
+| 2 | 0.8571 | 0.8095 | 0.4591 | 0.012 |
+| 4 | 0.9048 | 0.9048 | 0.4591 | 0.003 |
+| 6 | 0.9048 | 0.9048 | 0.4591 | 0.003 |
+
+(TF-IDF numbers; slightly lower recall/coverage than the prior dense-embedding
+implementation, but still strong for a 12-document corpus, and retrieval
+latency is now near-zero -- no model load at all, versus the prior
+implementation's one-time PyTorch import cost.)
 
 **Reading these numbers:** recall@k (did at least one gold document show up
 in the top-k) is already 1.0 even at k=2 for this corpus/eval-set size —
@@ -62,18 +78,18 @@ load, not k itself).
 
 ## Full-pipeline metrics: fallback mode vs. real LLM mode
 
-| Metric | Fallback (`llm_used=false`) | Real Claude (`llm_used=true`) |
+| Metric | Fallback (`llm_used=false`) | Real Claude (`llm_used=true`, **stale, pre-TF-IDF**) |
 |---|---|---|
-| groundedness_rate | 1.0000 | 0.9048 |
-| citation_precision_mean | 0.6429 | 0.5627 |
-| citation_recall_mean | 0.9524 | 0.8810 |
+| groundedness_rate | 0.8571 | 0.9048 |
+| citation_precision_mean | 0.4603 | 0.5627 |
+| citation_recall_mean | 0.8571 | 0.8810 |
 | tool_selection_accuracy | 1.0000 | 0.6250 |
 | workflow_completion_rate | 1.0000 | 1.0000 |
-| escalation_clarification_accuracy | 1.0000 | 0.9000 |
+| escalation_clarification_accuracy | 0.9667 | 0.9000 |
 | action_safety_pass_rate | 1.0000 | 1.0000 |
-| latency p50 (s) | 0.0177 | 5.6339 |
-| latency p95 (s) | 0.0239 | 21.2532 |
-| latency mean (s) | 0.1259 | 7.5477 |
+| latency p50 (s) | 0.0053 | 5.6339 |
+| latency p95 (s) | 0.0099 | 21.2532 |
+| latency mean (s) | 0.0108 | 7.5477 |
 
 **Reading these numbers, and why fallback mode is not simply "better":**
 
@@ -102,17 +118,20 @@ load, not k itself).
   memory of the previous one. `evaluation/eval_set.json`'s `tool-05`
   `expected_tools` was updated to reflect this intentional design (see the
   `gold_answer_note` on that item).
-- **groundedness_rate (0.90 vs 1.00) and citation metrics both dip slightly**
-  in real LLM mode because Claude chooses which of the retrieved chunks to
-  actually cite in prose, rather than the fallback's fixed "cite everything
-  retrieved" behavior -- occasionally it cites a closely related section
-  instead of the exact gold doc_id. This is a real, minor precision/recall
-  trade-off of giving the model citation judgment instead of hard-coding it.
-- **escalation_clarification_accuracy (0.90 vs 1.00):** one out-of-scope/
-  ambiguous item was handled slightly differently in free-form LLM prose
-  than the fallback's fixed refusal template, while still being a correct
-  refusal in substance -- the harness's exact-flag comparison is strict
-  about the structured flag, not the semantic correctness of the answer.
+- **groundedness_rate and citation metrics** differ between modes because
+  Claude chooses which of the retrieved chunks to actually cite in prose,
+  rather than the fallback's fixed "cite everything retrieved" behavior --
+  occasionally it cites a closely related section instead of the exact gold
+  doc_id. This is a real, minor precision/recall trade-off of giving the
+  model citation judgment instead of hard-coding it. (Numbers in the table
+  above for the real-Claude column predate the TF-IDF retrieval switch --
+  rerun `evaluation/run_eval.py` with a key set to get current numbers for
+  this column; the fallback column is already current.)
+- **escalation_clarification_accuracy:** occasional out-of-scope/ambiguous
+  items get handled slightly differently in free-form LLM prose than the
+  fallback's fixed refusal template, while still being a correct refusal in
+  substance -- the harness's exact-flag comparison is strict about the
+  structured flag, not the semantic correctness of the answer.
 - **Latency is the largest difference by far** (tens of milliseconds vs.
   several seconds to tens of seconds per item): fallback mode makes zero
   network calls, while real mode makes 1-4 sequential Claude API round

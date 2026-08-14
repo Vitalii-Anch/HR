@@ -125,7 +125,12 @@ def check_policy_compliance(scenario: str, employee_id: str | None = None) -> di
         employee_id: Optional employee id, for cross-referencing role/location.
     """
     results = retrieve(scenario, k=5)
-    if not results or results[0].score < 0.3:
+    # Threshold calibrated for TF-IDF cosine-similarity scores, which run
+    # lower than the dense-embedding scores this was originally tuned for
+    # (see app/agent/orchestrator.py's OUT_OF_SCOPE_SIMILARITY_THRESHOLD for
+    # the full explanation -- same recalibration applies here). retrieve()
+    # already returns [] outright for zero lexical overlap.
+    if not results or results[0].score < 0.12:
         return {
             "scenario": scenario,
             "judgment": "insufficient_evidence",

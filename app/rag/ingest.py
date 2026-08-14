@@ -86,6 +86,7 @@ def build_index(
 
     ids: list[str] = []
     documents: list[str] = []
+    embed_source_texts: list[str] = []
     metadatas: list[dict] = []
     doc_ids: list[str] = []
 
@@ -97,6 +98,14 @@ def build_index(
             chunk_id = f"{parsed.doc_id}::{chunk.order}::{chunk.chunk_index}"
             ids.append(chunk_id)
             documents.append(chunk.text)
+            # TF-IDF matches on literal tokens, so a query term that only
+            # appears in a section's heading (e.g. "carryover" in "Maximum
+            # Balance and Carryover", where the body only ever writes "carry
+            # over" as two words) would otherwise never match. Prepending the
+            # document title + section heading to the text used for
+            # *embedding* (not to what's stored/displayed as the chunk's
+            # text) fixes this cheaply, with no effect on citations.
+            embed_source_texts.append(f"{parsed.title}. {chunk.heading}. {chunk.text}")
             metadatas.append(
                 {
                     "doc_id": parsed.doc_id,
@@ -112,7 +121,7 @@ def build_index(
     if not ids:
         return IngestStats(documents=0, chunks=0, doc_ids=[])
 
-    embeddings = embed_texts(documents)
+    embeddings = embed_texts(embed_source_texts)
 
     # Chroma add() has a practical batch-size ceiling; batch defensively.
     batch_size = 256

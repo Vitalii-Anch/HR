@@ -25,5 +25,59 @@
     "category": "pto",
     "status": "open",
     "created_at": "2026-08-10T15:46:03.742963+00:00"
+  },
+  {
+    "ticket_id": "TCK-C638DE92",
+    "employee_id": "E1002",
+    "subject": "Test",
+    "description": "Test ticket",
+    "category": "general",
+    "status": "open",
+    "created_at": "2026-08-14T18:15:18.177667+00:00"
+  },
+  {
+    "ticket_id": "TCK-FFF664D7",
+    "employee_id": "E1002",
+    "subject": "Test",
+    "description": "Test ticket",
+    "category": "general",
+    "status": "open",
+    "created_at": "2026-08-14T18:15:51.973922+00:00"
+  },
+  {
+    "ticket_id": "TCK-30C1862B",
+    "employee_id": "E1002",
+    "subject": "Test",
+    "description": "Test ticket",
+    "category": "general",
+    "status": "open",
+    "created_at": "2026-08-14T18:16:17.982244+00:00"
+  },
+  {
+    "ticket_id": "TCK-6D088B8D",
+    "employee_id": "E1002",
+    "subject": "Test",
+    "description": "Test ticket",
+    "category": "general",
+    "status": "open",
+    "created_at": "2026-08-14T18:30:48.013735+00:00"
+  },
+  {
+    "ticket_id": "TCK-FA856FED",
+    "employee_id": "E1002",
+    "subject": "PTO request",
+    "description": "Please submit a ticket for my PTO request.",
+    "category": "pto",
+    "status": "open",
+    "created_at": "2026-08-14T18:30:48.039576+00:00"
+  },
+  {
+    "ticket_id": "TCK-D2EC2C1C",
+    "employee_id": "E1002",
+    "subject": "PTO Request: Sept 8-10",
+    "description": "Employee E1002 requests PTO from September 8 to September 10 (3 days).",
+    "category": "pto",
+    "status": "open",
+    "created_at": "2026-08-14T18:32:13.707323+00:00"
   }
 ]

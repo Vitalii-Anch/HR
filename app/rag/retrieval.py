@@ -64,6 +64,18 @@ def retrieve(
         return []
 
     query_embedding = embed_query(query)
+
+    # TF-IDF produces an all-zero vector when none of the query's tokens are
+    # in the fitted vocabulary (i.e. the query shares no lexical overlap
+    # with anything in the corpus at all -- a genuinely out-of-scope query).
+    # Chroma's L2-distance-to-similarity conversion below maps a zero query
+    # vector against any unit-normalized document vector to a constant,
+    # *misleadingly medium* similarity (dist == 1 for every document, so
+    # every single chunk scores identically), rather than the low score an
+    # unrelated query should get. Short-circuit that degenerate case here.
+    if not any(query_embedding):
+        return []
+
     fetch_n = min(max(k * fetch_multiplier, k), count)
 
     results = collection.query(

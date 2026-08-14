@@ -15,9 +15,13 @@ def test_retrieve_respects_k():
 
 
 def test_out_of_scope_query_scores_low():
+    # A query with zero lexical overlap with the corpus's vocabulary should
+    # return no results at all under TF-IDF retrieval (see the zero-vector
+    # short-circuit in app/rag/retrieval.py's retrieve()), rather than a
+    # low-but-nonzero score -- there is nothing in the corpus for the query
+    # to meaningfully match against.
     results = retrieve("What's the best pizza topping in Chicago?", k=4)
-    assert len(results) > 0
-    assert results[0].score < 0.4
+    assert len(results) == 0
 
 
 def test_format_citations_dedupes():

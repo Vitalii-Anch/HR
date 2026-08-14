@@ -30,7 +30,6 @@ See `design-and-evaluation.md` for the full diagram.
 ## Requirements
 
 - Python 3.10
-- ~1-2 GB free disk (mainly for the local embedding model / CPU-only torch)
 - An `ANTHROPIC_API_KEY` **only if** you want real LLM-synthesized answers.
   Everything else (RAG retrieval, MCP tools, guardrails, both demo
   workflows) works without one, via a deterministic fallback path — this is
@@ -52,18 +51,16 @@ cp .env.example .env
 # without it (see below).
 ```
 
-### Embedding model weights
+### Embedding model
 
-This project loads the `sentence-transformers/all-MiniLM-L6-v2` embedding
-model from a **local** path (`EMBEDDING_MODEL_PATH`, default
-`./models/all-MiniLM-L6-v2`), populated automatically the first time you run
-the app or `scripts/build_index.py`, via the `all-minilm-l6-v2-model` pip
-package (a normal PyPI wheel bundling the official model weights — see
-`requirements.txt` and `app/rag/embeddings.py` for the full rationale). This
-means the embedding pipeline works **fully offline**, with no dependency on
-`huggingface.co` being reachable at runtime. If that package is ever
-unavailable, the code falls back to downloading `EMBEDDING_MODEL_NAME`
-directly from the Hugging Face Hub (needs network access).
+This project embeds policy chunks with a lightweight, pure-Python TF-IDF
+implementation (`app/rag/embeddings.py`) — no PyTorch, no ONNX runtime, no
+model weights to download, and no network dependency of any kind. This
+replaced an earlier `sentence-transformers/all-MiniLM-L6-v2` implementation,
+which worked but imported PyTorch inside the MCP server subprocess, adding
+200-400MB of resident memory that reliably exceeded Render free tier's
+512MB container cap (see `deployed.md` and `design-and-evaluation.md` §2.2
+for the full incident and tradeoff writeup).
 
 ### Build the RAG index
 

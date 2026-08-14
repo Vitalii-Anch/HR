@@ -19,6 +19,7 @@ or as an async context manager:
 from __future__ import annotations
 
 import json
+import os
 import shlex
 from contextlib import AsyncExitStack
 from dataclasses import dataclass
@@ -56,7 +57,18 @@ class MCPToolClient:
     async def connect(self) -> None:
         if self._session is not None:
             return
-        params = StdioServerParameters(command=self.command, args=self.args)
+        # The MCP SDK's stdio_client, if not given an explicit `env`, spawns
+        # the subprocess with only a small hardcoded safe-list of inherited
+        # variables (get_default_environment()) -- NOT the parent process's
+        # actual environment. That silently drops every one of this
+        # project's own config env vars (CHROMA_PERSIST_DIR, CORPUS_DIR,
+        # MOCK_DATA_DIR, EMBEDDING_MODEL_PATH, RETRIEVAL_TOP_K, ...) for the
+        # MCP server subprocess, which then falls back to app/config.py's
+        # hardcoded defaults instead of whatever this process/Render's
+        # dashboard actually configured. Passing the real environment
+        # through explicitly makes the subprocess's configuration match the
+        # parent process's, as intended.
+        params = StdioServerParameters(command=self.command, args=self.args, env=dict(os.environ))
         self._exit_stack = AsyncExitStack()
         read, write = await self._exit_stack.enter_async_context(stdio_client(params))
         self._session = await self._exit_stack.enter_async_context(ClientSession(read, write))
